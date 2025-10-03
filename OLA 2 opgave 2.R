@@ -67,12 +67,12 @@ forbrugertillidDST <- as.data.frame((kvartalerDSTft1+kvartalerDSTft2+kvartalerDS
 
 #der oprettes en vektorer for kvartalerne fra k1 2000 til k2 2025
 year <- seq.Date(from = as.Date("2000-01-01"),
-                      to = as.Date("2025-06-30"),
-                      by = "quarter")
+                 to = as.Date("2025-06-30"),
+                 by = "quarter")
 f.tillidsammen <- as.data.frame(year)
 
 #Der oprettes en vektor for den årlige kvartalvise realvækst for privatforbruget, som indsættes i dataframes
-P.forbrugvaekst <- c(0, diff(log(p.forbrug$Privatforbrug),lag=4)*100)
+P.forbrugvaekst <- c(0, diff(log(p.forbrug$value),lag=4)*100)
 f.tillidsammen$pfv <- P.forbrugvaekst[-1]
 f.tillidsammen$f.tillidDI <- forbrugertillidDI$`c((kvartalerDIft1 + kvartalerDIft2 + kvartalerDIft3)/3)`
 f.tillidsammen$f.tillidDST <- forbrugertillidDST$`(kvartalerDSTft1 + kvartalerDSTft2 + kvartalerDSTft3)/3`
@@ -150,7 +150,6 @@ ggplot(data = dfsammen2016, aes(x=year))+
                labels = format(dfsammen2016$year[seq(1, length(dfsammen2016$year), by = 4)], "%Y"))
 
 #forudsigelser for privatforbrug k3 fra DI og DST's Forbrugertillidsindikator
-forbrugertillid_3_kvartal <- read_excel("R/R projekter/forbrugertillid 3.kvartal.xlsx")
 DI3k <- c((f.tillid$`F2 Familiens økonomiske situation i dag, sammenlignet med for et år siden`[307:309]+
              f.tillid$`F4 Danmarks økonomiske situation i dag, sammenlignet med for et år siden`[307:309]+
              f.tillid$`F9 Anskaffelse af større forbrugsgoder, fordelagtigt for øjeblikket`[307:309]+
@@ -207,5 +206,3 @@ ggplot(data = f.tillidsammen, aes(x=year))+
                labels = format(f.tillidsammen$year[seq(1, length(f.tillidsammen$year), by = 4)], "%Y"))+
   theme(axis.text.x = element_text(size = 10,angle = 90, vjust = 0.5, hjust = 1))+
   geom_hline(yintercept = 0, linetype = "solid", linewidth = 0.1, color = "black")
-  
-
