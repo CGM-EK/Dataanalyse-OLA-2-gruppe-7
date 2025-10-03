@@ -1,6 +1,5 @@
 #pakker loades til brug i opgaven
 library(dkstat)
-library(mapDK)
 library(tidyverse)
 
 #vi henter data fra Danmarks statistik
@@ -14,12 +13,11 @@ dkbefolk_meta_filters <- list(
 befolkningsdata <- dst_get_data(table = "POSTNR2", query = dkbefolk_meta_filters, lang = "da")
 befolkningsdatacl <- befolkningsdata
 
-
 #opretter ny kolonne med postnummer ud fra datasettet
 befolkningsdatacl$mzip <- sub(".* - ", "", befolkningsdata$PNR20) #fjerner alt før "-"
 befolkningsdatacl$mzip <- as.numeric(gsub("[^0-9]","", befolkningsdatacl$mzip)) #fjerner alt på nær tal
 
-#opretter ny kolonne med bynavn ud fra datasettet
+#opretter ny kolonne med bynavn ud fra datasættet
 befolkningsdatacl$by <- sub(".* - ", "", befolkningsdata$PNR20) #fjerner alt før "-"
 befolkningsdatacl$by <- gsub("[-^0-9]","", befolkningsdatacl$by) #fjerner alle tal
 befolkningsdatacl$by <- gsub(" ","", befolkningsdatacl$by) #fjerner mellemrum før udtryk
@@ -34,7 +32,7 @@ befolkningsdatacl <- as.data.frame(subset(befolkningsdatacl, befolkningsdatacl$v
 #vi indlæser datafil for boliger
 boligcl2 <- readRDS("boligcl2.rds")
 
-#laver et nyt dataset til at arbejde i
+#laver et nyt datasæt til at arbejde i
 boligcl22 <- boligcl2
 
 #opretter ny prisvariabel i kr. med kun tal
@@ -43,7 +41,7 @@ boligcl22$prisny <- as.numeric(gsub("[^0-9]","", boligcl22$pris))
 #opretter en ny variabel med kvm/pris
 boligcl22$kvmpris <- boligcl22$prisny/boligcl22$kvm2
 
-#oprettter et dataframe med totale befolkningstal pr by
+#opretter et dataframe med totale befolkningstal pr by
 combinedby <- befolkningsdatacl %>% 
   group_by(by) %>% 
   summarise(total=sum(value),.groups = "drop")
@@ -51,7 +49,7 @@ combinedby <- befolkningsdatacl %>%
 #vi merger for at få befolkningstal for byerne ind i dataframet
 mergedbolig2 <- left_join(befolkningsdatacl, combinedby, by = "by")
 
-#vi merger vores to dataset på postnummer
+#vi merger vores to datasæt på postnummer
 mergedbolig <- inner_join(mergedbolig2, boligcl22, by = "mzip")
 
 #vi laver en ny dataframe uden dublikater ud fra boligID
@@ -81,3 +79,4 @@ ggplot(data = combinedkvm, aes(x=Bykategori, y=kvmpris, fill = Bykategori))+
   theme_minimal()+ theme(legend.position = "none") +
   labs(title = "Kvadratmeterpriser stiger med indbyggertal", caption = "Kilde:https://www.statistikbanken.dk/POSTNR2\nKilde:https://www.boligsiden.dk/")+ 
   ylab("Gennemsnitlig kvadratmeterpris i Kr.")+ xlab("Bykategori baseret på indbyggertal")
+
