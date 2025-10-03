@@ -1,9 +1,8 @@
 #pakker loades til brug i opgaven
-library(danstat)
 library(dkstat)
 library(mapDK)
 library(tidyverse)
-#testtest
+
 #vi henter data fra Danmarks statistik
 dkbefolkningpost <- dst_meta(table = "POSTNR2", lang = "da")
 
@@ -33,7 +32,7 @@ befolkningsdatacl <- as.data.frame(subset(befolkningsdatacl, befolkningsdatacl$v
 
 ############################################
 #vi indlæser datafil for boliger
-boligcl2 <- readRDS("~/R/R projekter/boligcl2.rds")
+boligcl2 <- readRDS("boligcl2.rds")
 
 #laver et nyt dataset til at arbejde i
 boligcl22 <- boligcl2
@@ -69,7 +68,7 @@ mylabs=c("Landsby (<1.000)","Lille by (1.001-2.500)", "Almindelig by (2.501-10.0
 mergedclean$Bykategori <- cut(mergedclean$total, labels = mylabs, breaks = mybreaks)
 
 #vi laver så den endelige dataframe hvor vi har vores by, pris, kvmpris, og bykategori
-boliger1.4 <- mergedclean[,c(5,8,24,27)]
+boliger1.4 <- mergedclean[,c(5,8,24,26)]
 
 #vi laver en ny dataframe der indeholder den gennemsnitlige kvmpris for bykategorien
 combinedkvm <- boliger1.4 %>% 
@@ -81,14 +80,4 @@ ggplot(data = combinedkvm, aes(x=Bykategori, y=kvmpris, fill = Bykategori))+
   geom_bar(stat = "identity")+
   theme_minimal()+ theme(legend.position = "none") +
   labs(title = "Kvadratmeterpriser stiger med indbyggertal", caption = "Kilde:https://www.statistikbanken.dk/POSTNR2\nKilde:https://www.boligsiden.dk/")+ 
-                        ylab("Gennemsnitlig kvadratmeterpris i Kr.")+ xlab("Bykategori baseret på indbyggertal")
-  
-
-#############################
-co <- boligcl22 %>% 
-  group_by(type) %>% 
-  summarise(kvmpris=mean(kvmpris),.groups = "drop")
-
-ggplot(data = boligcl22, aes(x=type, y=kvmpris), color = type, group = type)+
-  geom_bar(stat="identity")
-
+  ylab("Gennemsnitlig kvadratmeterpris i Kr.")+ xlab("Bykategori baseret på indbyggertal")
