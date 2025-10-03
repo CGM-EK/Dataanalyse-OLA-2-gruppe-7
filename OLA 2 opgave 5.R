@@ -1,6 +1,4 @@
-install.packages("restatapi")
 library(restatapi)
-install.packages("eurostat")
 library(eurostat)
 
 toc<-get_eurostat_toc()
@@ -16,13 +14,13 @@ list <- mySearches("expenditure")
 
 dfconsum <- get_eurostat_data("namq_10_fcs",
                               filters = list(
-                              geo=c("DK","BE","NL","SE","AT","DE","FR","IT","ES"),
-                              na_item="P31_S14",
-                              s_adj="NSA",
-                              unit="CLV20_MEUR"),
-date_filter=">1999",
-label=TRUE,
-name=FALSE)
+                                geo=c("DK","BE","NL","SE","AT","DE","FR","IT","ES"),
+                                na_item="P31_S14",
+                                s_adj="NSA",
+                                unit="CLV20_MEUR"),
+                              date_filter=">1999",
+                              label=TRUE,
+                              name=FALSE)
 
 pivotland <- pivot_wider(
   data = dfconsum,
@@ -30,8 +28,8 @@ pivotland <- pivot_wider(
   values_from = values
 )
 landyear <- seq.Date(from = as.Date("2000-01-01"),
-                   to = as.Date("2025-06-30"),
-                   by = "quarter")
+                     to = as.Date("2025-06-30"),
+                     by = "quarter")
 
 landpfv <- as.data.frame(landyear)
 
