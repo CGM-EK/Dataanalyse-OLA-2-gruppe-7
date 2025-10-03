@@ -1,7 +1,6 @@
 #loader pakker til brug i opgaven
 library(tidyverse)
 library(ggplot2)
-library(readxl)
 
 #vi henter data fra Danmarks statistik
 forbrugerforv <- dst_meta(table = "FORV1", lang = "da")
@@ -173,13 +172,13 @@ pfvplotdf <- f.tillidsammen[73:102,]
 
 ggplot(data = pfvplotdf, aes(x=year))+
   geom_bar(aes(y=pfv), fill = "steelblue", stat = "identity")+
-  geom_line(aes(y=p.forbrug/p.forbrug[1]*100-100), size = 1.2)+
+  geom_line(aes(y=pfv/pfv[1]*100-100), size = 1.2)+
   theme_minimal()+ labs(title = "Privatforbruget har haft fremgang de seneste kvartaler")+
   theme(axis.text.x = element_text(size = 15,angle = 90, vjust = 0.5, hjust = 1))+
   scale_x_date(name = "Årstal", breaks = f.tillidsammen$year[seq(1, length(f.tillidsammen$year), by = 4)],
                labels = format(f.tillidsammen$year[seq(1, length(f.tillidsammen$year), by = 4)], "%Y"))+
   scale_y_continuous(name = "Årlige kvartalvise realvækst",limits = c(-10,12), breaks = seq(from = -10, to = 10, by = 2),
-                     sec.axis = sec_axis(~(.+100)/100*pfvplotdf$p.forbrug[1], name ="Privatforbruget i hele milliader kr."))+
+                     sec.axis = sec_axis(~(.+100)/100*pfvplotdf$pfv[1], name ="Privatforbruget i hele milliader kr."))+
   geom_hline(yintercept = 0, linetype = "solid", linewidth = 0.1, color = "black")
 
 total.pforbrug2024 <- sum(p.forbrug$value[101:104])
