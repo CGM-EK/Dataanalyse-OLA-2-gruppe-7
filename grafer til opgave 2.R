@@ -1,3 +1,4 @@
+#
 f.tillid <- Forbrugertillidsindikator2000_2025_OLA2
 p.forbrug <- Privatforbrug_1999_2025
 
@@ -37,3 +38,4 @@ ggplot(data = pfvplotdf, aes(x=year))+
                labels = format(f.tillidsammen$year[seq(1, length(f.tillidsammen$year), by = 4)], "%Y"))+
   scale_y_continuous(name = "DST's forbrugertillidsindikator",limits = c(-35,10), breaks = seq(from = -40, to = 10, by = 5))+
   geom_hline(yintercept = 0, linetype = "solid", linewidth = 0.1, color = "black")
+
