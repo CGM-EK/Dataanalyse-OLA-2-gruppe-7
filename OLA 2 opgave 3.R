@@ -1,10 +1,47 @@
+
 #loader pakker til brug i opgaven
 library(readxl)
 
-f.tillid <- read_excel("R/R projekter/Forbrugertillidsindikator2000_2025 OLA2.xlsx")
+#f.tillid <- read_excel("R/R projekter/Forbrugertillidsindikator2000_2025 OLA2.xlsx")
 
-p.forbrug <- read_excel("R/R projekter/D-dsheli-main/uge 37 forbrugertillid/Privatforbrug 1999-2025.xlsx", 
-                        sheet = "Ark1")
+#vi henter data fra Danmarks statistik
+forbrugerforv <- dst_meta(table = "FORV1", lang = "da")
+
+#vi udvælger variabler vi vil kigge på og opretter et dataset
+forbrugerforv_meta_filters <- list(
+  INDIKATOR = "*",
+  Tid = "*"
+)
+f.tillid <- dst_get_data(table = "FORV1", query = forbrugerforv_meta_filters, lang = "da")
+f.tillid <- f.tillid %>% filter(TID >="2000-01-01")
+
+f.tillid <- pivot_wider(
+  data = f.tillid,
+  names_from = INDIKATOR,
+  values_from = value)
+
+###########
+
+p.forbrugss <- dst_meta(table = "NKN1", lang = "da")
+
+#vi udvælger variabler vi vil kigge på og opretter et dataset
+pforbrug_meta_filters <- list(
+  TRANSAKT = "P.31 Privatforbrug",
+  PRISENHED = "2020-priser, kædede værdier, (mia. kr.)",
+  SÆSON = "Sæsonkorrigeret",
+  Tid = "*"
+)
+p.forbrug1 <- dst_get_data(table = "NKN1", query = pforbrug_meta_filters, lang = "da")
+p.forbrug <- p.forbrug1 %>% filter(TID >="1999-01-01")
+
+f.forbrug <- pivot_wider(
+  data = p.forbrug,
+  names_from = TRANSAKT,
+  values_from = value)
+
+
+
+########################################################
 
 #oprettelse af faktorvariabel der viser om det kvartalvise årlige vækst er steget eller faldet
 year <- seq.Date(from = as.Date("2000-01-01"),
@@ -12,7 +49,7 @@ year <- seq.Date(from = as.Date("2000-01-01"),
                  by = "quarter")
 Dfopg3 <- as.data.frame(year)
 
-P.forbrugvaekst <- c(0, diff(log(p.forbrug$Privatforbrug),lag=4)*100)
+P.forbrugvaekst <- c(0, diff(log(p.forbrug$value),lag=4)*100)
 Dfopg3$pfv <- P.forbrugvaekst[-1]
 Dfopg3$YN <- as.factor(ifelse(Dfopg3$pfv >=0, "1", "0"))
 table(Dfopg3$YN)
@@ -26,16 +63,16 @@ kvartalseq2 <- seq(2,305, 3)
 kvartalseq3 <- seq(3,306, 3)
 
 #variabler defineres for DI og DST's forbrugertillidsindikatorer i f.tillid
-f.tillid$sammenlagtDI <- c((f.tillid$`Familiens økonomiske situation i dag, sammenlignet med for et år siden`+
-                              f.tillid$`Danmarks økonomiske situation i dag, sammenlignet med for et år siden`+
-                              f.tillid$`Anskaffelse af større forbrugsgoder, fordelagtigt for øjeblikket`+
-                              f.tillid$`Anskaffelse af større forbrugsgoder, inden for de næste 12 mdr.`)/4)
+f.tillid$sammenlagtDI <- c((f.tillid$`F2 Familiens økonomiske situation i dag, sammenlignet med for et år siden`+
+                              f.tillid$`F4 Danmarks økonomiske situation i dag, sammenlignet med for et år siden`+
+                              f.tillid$`F9 Anskaffelse af større forbrugsgoder, fordelagtigt for øjeblikket`+
+                              f.tillid$`F10 Anskaffelse af større forbrugsgoder, inden for de næste 12 mdr.`)/4)
 
-f.tillid$sammenlagtDST <- c((f.tillid$`Familiens økonomiske situation i dag, sammenlignet med for et år siden`+
-                               f.tillid$`Familiens økonomiske  situation om et år, sammenlignet med i dag`+
-                               f.tillid$`Danmarks økonomiske situation i dag, sammenlignet med for et år siden`+
-                               f.tillid$`Danmarks økonomiske situation om et år, sammenlignet med i dag`+
-                               f.tillid$`Anskaffelse af større forbrugsgoder, fordelagtigt for øjeblikket`)/5)
+f.tillid$sammenlagtDST <- c((f.tillid$`F2 Familiens økonomiske situation i dag, sammenlignet med for et år siden`+
+                               f.tillid$`F3 Familiens økonomiske  situation om et år, sammenlignet med i dag`+
+                               f.tillid$`F4 Danmarks økonomiske situation i dag, sammenlignet med for et år siden`+
+                               f.tillid$`F5 Danmarks økonomiske situation om et år, sammenlignet med i dag`+
+                               f.tillid$`F9 Anskaffelse af større forbrugsgoder, fordelagtigt for øjeblikket`)/5)
 
 #kvartalsekvenser anvendes på forbrugertillidsindikatorerne og der oprettes dataframes
 kvartalerDIft1 <- f.tillid$sammenlagtDI[kvartalseq1]
@@ -55,7 +92,7 @@ year <- seq.Date(from = as.Date("2000-01-01"),
 f.tillidsammen <- as.data.frame(year)
 
 #Der oprettes en vektor for den årlige kvartalvise realvækst for privatforbruget, som indsættes i dataframes
-P.forbrugvaekst <- c(0, diff(log(p.forbrug$Privatforbrug),lag=4)*100)
+P.forbrugvaekst <- c(0, diff(log(p.forbrug$value),lag=4)*100)
 f.tillidsammen$pfv <- P.forbrugvaekst[-1]
 f.tillidsammen$f.tillidDI <- forbrugertillidDI$`c((kvartalerDIft1 + kvartalerDIft2 + kvartalerDIft3)/3)`
 f.tillidsammen$f.tillidDST <- forbrugertillidDST$`(kvartalerDSTft1 + kvartalerDSTft2 + kvartalerDSTft3)/3`
@@ -101,45 +138,3 @@ summary(glm.DSTPFV)
 pred_probsDST <- predict(glm.DSTPFV, type = "response")
 pred_classDST <- ifelse(pred_probsDST > threshold,1, 0)
 table(predicted =pred_classDST, actual = Dfopg3$YN)
-
-#########################
-
-forbrugertillid_meta_filters <- list(
-  INDIKATOR = "*",
-  Tid = "*"
-)
-forbrugertillidspgs <- dst_get_data(table = "FORV1", query = forbrugertillid_meta_filters, lang = "da")
-befolkningsdatacl <- befolkningsdata
-table(forbrugertillidspgs$INDIKATOR)
-
-vurderingsdf <- as.data.frame(year)
-vurderingsdf$fam.sit.bag <- fam.sit.ift.bag
-vurderingsdf$fam.sit.frem <- fam.sit.frem
-vurderingsdf$dk.sit.bag <- dk.sit.bag
-vurderingsdf$dk.sit.frem <- dk.sit.frem
-vurderingsdf$an.str.fbg.fd <- an.str.fbg.fd
-vurderingsdf$an.str.fbg.n12 <- an.str.fbg.n12
-
-vurderingsdf$fam.sit.bagYN <- as.factor(ifelse(vurderingsdf$fam.sit.bag >=0, "1", "0"))
-vurderingsdf$fam.sit.fremYN <- as.factor(ifelse(vurderingsdf$fam.sit.frem >=0, "1", "0"))
-vurderingsdf$dk.sit.bagYN <- as.factor(ifelse(vurderingsdf$dk.sit.bag >=0, "1", "0"))
-vurderingsdf$dk.sit.fremYN <- as.factor(ifelse(vurderingsdf$dk.sit.frem >=0, "1", "0"))
-vurderingsdf$an.str.fbg.fdYN <- as.factor(ifelse(vurderingsdf$an.str.fbg.fd >=0, "1", "0"))
-vurderingsdf$an.str.fbg.n12YN <- as.factor(ifelse(vurderingsdf$an.str.fbg.n12 >=0, "1", "0"))
-
-nydfopned <- forbrugertillidspgs %>% filter(TID>="2000-01-01")
-nydfopned$valueopned <- as.factor(ifelse(nydfopned$value >=0, "yes", "no"))
-
-ggplot(data = nydfopned, aes(x=INDIKATOR, y=n, fill = INDIKATOR))+
-  geom_bar(stat = "identity",position = "dodge")
-
-df_counts <- nydfopned %>%
-  group_by(INDIKATOR, valueopned) %>%
-  summarise(n = n())
-
-df_count_yes <- df_counts %>% filter(valueopned=="yes")
-df_count_no <- df_counts %>% filter(valueopned=="no")
-ggplot(data = df_count_yes, aes(x=INDIKATOR, y=n, fill = INDIKATOR))+
-  geom_bar(stat = "identity", position = "dodge")
-ggplot(data = df_count_no, aes(x=INDIKATOR, y=n, fill = INDIKATOR))+
-  geom_bar(stat = "identity", position = "dodge")
