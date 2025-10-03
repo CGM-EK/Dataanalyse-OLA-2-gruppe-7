@@ -1,12 +1,7 @@
 #loader pakker til brug i opgaven
-library(readxl)
-library(danstat)
 library(dkstat)
-library(mapDK)
 library(tidyverse)
-#loader data for forbrugertillid og privatforbrug til brug i opgaven
-f.tillid <- read_excel("R/R projekter/Forbrugertillidsindikator2000_2025 OLA2.xlsx", 
-                       sheet = "Ark1")
+
 #vi henter data fra Danmarks statistik
 forbrugerforv <- dst_meta(table = "FORV1", lang = "da")
 
@@ -48,7 +43,7 @@ plotdata$ansk <- c((kvartalerplot1+kvartalerplot2+kvartalerplot3)/3)
 ggplot(data = plotdata, aes(x=year, y = ansk, color = "Anskaffelse af større forbrugsgoder"))+
   geom_line(size = 1.5)+
   geom_point(size = 2)+
-theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))+
   scale_x_date(name = "Year", breaks = plotdata$year[seq(1, length(plotdata$year), by = 4)],
                labels = format(plotdata$year[seq(1, length(plotdata$year), by = 4)], "%Y"))+
   theme_minimal()+
@@ -66,20 +61,20 @@ forbruglist <- dst_meta(table = "NAHC021", lang = "da")
 
 dkforbrug_meta_filters <- list(
   FORMAAAL = c("Fødevarer mv.",
-                "Drikkevarer og tobak mv.",
-                "Beklædning og fodtøj",
-                "Boligbenyttelse",
-                "Elektricitet, fjernvarme og andet brændsel",
-                "Boligudstyr, husholdningstjenester mv.",
-                "Medicin, lægeudgifter o.l.",
-                "Køb af køretøjer",
-                "Drift af køretøjer og transporttjenester",
-                "Information og kommunikation",
-                "Fritid, sport og kultur",
-                "Undervisning",
-                "Restauranter og hoteller",
-                "Forsikring og finansielle tjenester",
-                "Andre varer og tjenester"),
+               "Drikkevarer og tobak mv.",
+               "Beklædning og fodtøj",
+               "Boligbenyttelse",
+               "Elektricitet, fjernvarme og andet brændsel",
+               "Boligudstyr, husholdningstjenester mv.",
+               "Medicin, lægeudgifter o.l.",
+               "Køb af køretøjer",
+               "Drift af køretøjer og transporttjenester",
+               "Information og kommunikation",
+               "Fritid, sport og kultur",
+               "Undervisning",
+               "Restauranter og hoteller",
+               "Forsikring og finansielle tjenester",
+               "Andre varer og tjenester"),
   PRISENHED = "2020-priser, kædede værdier",
   TID = "*"
 )
@@ -98,13 +93,13 @@ madogforbrug <- forbrugsdata1 %>% filter(FORMAAAL == "CPA Fødevarer mv."|
                                            FORMAAAL == "CPM Restauranter og hoteller")
 
 boligoghusholdning <- forbrugsdata1 %>% filter(FORMAAAL == "CPD Boligbenyttelse"|
-                                           FORMAAAL == "CPE Elektricitet, fjernvarme og andet brændsel"|
-                                           FORMAAAL == "CPF Boligudstyr, husholdningstjenester mv.")
+                                                 FORMAAAL == "CPE Elektricitet, fjernvarme og andet brændsel"|
+                                                 FORMAAAL == "CPF Boligudstyr, husholdningstjenester mv.")
 
 sundhedogpersonligomsorg <- forbrugsdata1 %>% filter(FORMAAAL == "CPG Medicin, lægeudgifter o.l.")
 
 transport <- forbrugsdata1 %>% filter(FORMAAAL == "CPH Køb af køretøjer"|
-                                                 FORMAAAL == "CPI Drift af køretøjer og transporttjenester")
+                                        FORMAAAL == "CPI Drift af køretøjer og transporttjenester")
 
 fritiduddannelseogøk<- forbrugsdata1 %>% filter(FORMAAAL == "CPK Fritid, sport og kultur"|
                                                   FORMAAAL == "CPL Undervisning"|
@@ -113,9 +108,6 @@ fritiduddannelseogøk<- forbrugsdata1 %>% filter(FORMAAAL == "CPK Fritid, sport 
 
 
 ggplot(data = madogforbrug, aes(x=TID, y=modeltal, group = FORMAAAL, color = FORMAAAL))+
-  geom_line()
-
-ggplot(data = forbrugsdata2, aes(x=TID, y=modeltal, group = FORMAAAL, color = FORMAAAL))+
   geom_line()
 
 dfopg33 <- forbrugsdata1[c(1,3,4)]
@@ -129,22 +121,11 @@ dfopg3333$pctforskel <- dfopg333 %>%
   group_by(FORMAAAL) %>% 
   summarise(value=diff(value),.groups = "drop")
 
-#vi laver plottet igen men med indekstal for at gøre udviklingen visuelt sammenlignelig
-forbrugsgoder_2020_2025 <- read_excel("R/forbrugsgoder 2020-2025.xlsx", 
-                                      sheet = "Ark1")
-dfindeks <- forbrugsgoder_2020_2025 %>% mutate(indeks = row_number())
-
-forbrugsgoder_2020_2025 <- forbrugsgoder_2020_2025 %>%
-  mutate(across(where(is.numeric),
-                ~ .x / first(.x) * 100,
-                .names = "{.col}_idx"))   
-
-
 
 #setup til lineære regressioner
 lmyear <- seq.Date(from = as.Date("2000-01-01"),
-                 to = as.Date("2024-10-01"),
-                 by = "year")
+                   to = as.Date("2024-10-01"),
+                   by = "year")
 
 lmtestdf <- as.data.frame(lmyear)
 
@@ -256,4 +237,3 @@ lm.test.kat15DI <- lm(lmtestdfjoined$`CPO Andre varer og tjenester`~lmtestdfjoin
 summary(lm.test.kat15DI)
 lm.test.kat15DST <- lm(lmtestdfjoined$`CPO Andre varer og tjenester`~lmtestdfjoined$DSTft)
 summary(lm.test.kat15DST)
-
